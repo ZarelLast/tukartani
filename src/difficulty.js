@@ -8,6 +8,7 @@ export const DIFFICULTY = {
   easy: {
     totalGiliran: 12,
     kasAwal: 24_000_000,
+    kesejahteraanAwal: 70,
     volat: 0.03,
     maxArah: 2,
     peluangKrisis: 0.06,
@@ -20,6 +21,7 @@ export const DIFFICULTY = {
   medium: {
     totalGiliran: 36,
     kasAwal: 18_000_000,
+    kesejahteraanAwal: 60,
     volat: 0.05,
     maxArah: 3,
     peluangKrisis: 0.12,
@@ -32,6 +34,7 @@ export const DIFFICULTY = {
   hard: {
     totalGiliran: 60,
     kasAwal: 12_000_000,
+    kesejahteraanAwal: 50,
     volat: 0.08,
     maxArah: 3,
     peluangKrisis: 0.20,

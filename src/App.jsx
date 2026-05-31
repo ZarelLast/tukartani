@@ -13,7 +13,6 @@ import StartScreen from './components/StartScreen.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import NewsPanel from './components/NewsPanel.jsx';
 import DecisionPanel from './components/DecisionPanel.jsx';
-import KursChart from './components/KursChart.jsx';
 import EndScreen from './components/EndScreen.jsx';
 import AdvisorChat from './components/AdvisorChat.jsx';
 import GameCanvas from './game/GameCanvas.jsx';
@@ -23,7 +22,6 @@ export default function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoadingNews, setIsLoadingNews] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [showKursChart, setShowKursChart] = useState(false);
 
   // Load save on mount
   useEffect(() => {
@@ -93,8 +91,11 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen overflow-hidden" style={{ background: '#1B4332' }}>
-      {/* Background — Phaser Canvas (placeholder untuk Lapis 5) */}
-      <GameCanvas kategoriBerita={state.beritaTerkini?.kategori} />
+      {/* Background — Scene dengan karakter */}
+      <GameCanvas
+        kategoriBerita={state.beritaTerkini?.kategori}
+        kesejahteraan={state.kesejahteraan}
+      />
 
       {/* HUD Overlay */}
       <Dashboard state={state} />
@@ -114,9 +115,6 @@ export default function App() {
 
         />
       )}
-
-      {/* KursChart */}
-      <KursChart riwayatKurs={state.riwayatKurs} riwayatBerita={state.riwayatBerita} isOpen={showKursChart} onClose={() => setShowKursChart(false)} />
 
       {/* Advisor Chat Modal */}
       {showChat && <AdvisorChat state={state} onClose={() => setShowChat(false)} />}

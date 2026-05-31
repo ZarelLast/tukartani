@@ -3,7 +3,8 @@
  * Dari docs/12-ui-ux-design.md §3b + docs/14-aset-layout-ui.md §3
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
+import KursChart from './KursChart.jsx';
 
 export default function Dashboard({ state }) {
   const [showKursChart, setShowKursChart] = useState(false);
@@ -84,7 +85,7 @@ export default function Dashboard({ state }) {
       </div>
 
       {/* Kanan Bawah — Stok Inventaris */}
-      <div className="absolute bottom-20 md:bottom-24 right-2 md:right-4 z-10">
+      <div className="absolute bottom-[15vh] md:bottom-[14vh] right-2 md:right-4 z-10">
         <div
           className="rounded-lg px-2 py-2 shadow-lg"
           style={{ background: 'rgba(92, 74, 46, 0.9)', border: '2px solid #8B6F47' }}
@@ -100,7 +101,7 @@ export default function Dashboard({ state }) {
       </div>
 
       {/* Kanan Bawah — Kesejahteraan & Biaya Hidup */}
-      <div className="absolute bottom-20 md:bottom-44 right-2 md:right-4 z-10" style={{ marginRight: state.mode ? '0' : '0' }}>
+      <div className="absolute bottom-[25vh] md:bottom-[24vh] right-2 md:right-4 z-10" style={{ marginRight: state.mode ? '0' : '0' }}>
         <div
           className="rounded-lg px-3 py-2 shadow-lg"
           style={{ background: 'rgba(92, 74, 46, 0.9)', border: '2px solid #8B6F47' }}
@@ -131,53 +132,13 @@ export default function Dashboard({ state }) {
         </div>
       </div>
 
-      {/* Kurs Chart Modal */}
-      {showKursChart && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div
-            className="rounded-xl p-6 max-w-lg w-full"
-            style={{ background: '#5C4A2E', border: '3px solid #8B6F47' }}
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold" style={{ color: '#FFD700', fontFamily: "'Fredoka One', cursive" }}>
-                📈 Grafik Kurs
-              </h2>
-              <button
-                onClick={() => setShowKursChart(false)}
-                className="text-white text-2xl hover:text-red-400"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="bg-amber-100/10 rounded-lg p-4 max-h-60 overflow-y-auto">
-              <table className="w-full text-xs" style={{ color: '#FFF8E7', fontFamily: "'Quicksand', sans-serif" }}>
-                <thead>
-                  <tr className="border-b border-amber-700">
-                    <th className="py-1">Bulan</th>
-                    <th className="py-1">Kurs</th>
-                    <th className="py-1">Trend</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {state.riwayatKurs.map((k, i) => (
-                    <tr key={i} className={i === state.riwayatKurs.length - 1 ? 'font-bold text-amber-300' : ''}>
-                      <td className="py-1">{i + 1}</td>
-                      <td className="py-1">{fmt(k)}</td>
-                      <td className="py-1">
-                        {i > 0 && (
-                          <span className={k > state.riwayatKurs[i - 1] ? 'text-red-400' : k < state.riwayatKurs[i - 1] ? 'text-green-400' : ''}>
-                            {k > state.riwayatKurs[i - 1] ? '📈' : k < state.riwayatKurs[i - 1] ? '📉' : '➡️'}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Kurs Chart Modal - menggunakan Recharts */}
+      <KursChart
+        riwayatKurs={state.riwayatKurs}
+        riwayatBerita={state.riwayatBerita}
+        isOpen={showKursChart}
+        onClose={() => setShowKursChart(false)}
+      />
     </>
   );
 }

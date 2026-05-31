@@ -151,11 +151,16 @@ export function pungutTagihanBulanan(s, inflasiBiayaHidup) {
   s.kasSelga -= totalTagihan;
 
   // Inflasi & penyusutan tiap awal tahun (giliran 13, 25, 37...)
+  let inflasiTerjadi = false;
   if (s.giliran > 1 && (s.giliran - 1) % 12 === 0) {
     s.biayaKeluargaLokal = Math.round(s.biayaKeluargaLokal * (1 + inflasiBiayaHidup));
     s.biayaKeluargaImporGC = Math.round(s.biayaKeluargaImporGC * (1 + inflasiBiayaHidup));
     s.faktorTanam = Math.max(1.0, s.faktorTanam - PENYUSUTAN_KEBUN_TAHUNAN);
+    inflasiTerjadi = true;
   }
+
+  // Return info untuk logging
+  return { totalTagihan, tagihanListrik, tagihanPBB, biayaKeluargaBulanan, inflasiTerjadi };
 }
 
 // ===== §koperasi — Pinjaman =====
@@ -165,14 +170,24 @@ export function pinjamMaks(s, cfg) {
 }
 
 export function pungutBunga(s, cfg) {
+  if (s.pinjaman <= 0) return 0;
+
+  // Bunga floating: naik jika kurs melemah
   const bungaAktual = cfg.bungaKoperasi * Math.max(1, s.kurs / KURS_AWAL);
-  s.kasSelga -= Math.round(s.pinjaman * bungaAktual);
+  const bunga = Math.round(s.pinjaman * bungaAktual);
+
+  // Bunga ditambahkan ke pinjaman (compound interest)
+  s.pinjaman += bunga;
+
+  return bunga; // Return untuk logging di reducer
 }
 
 // ===== §kesejahteraan =====
 
 export function tekanKesejahteraan(s) {
+  const sebelum = s.kesejahteraan;
   s.kesejahteraan = clamp(s.kesejahteraan - DECAY_SEJAHTERA, 0, 100);
+  return sebelum - s.kesejahteraan; // Return decay amount
 }
 
 // ===== §bangkrut — Auto-Likuidasi =====

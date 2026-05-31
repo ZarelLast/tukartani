@@ -50,7 +50,7 @@ function _stateAwal(mode, namaPetani, namaKebun, seed) {
     biayaKeluargaLokal: 1_650_000,
     biayaKeluargaImporGC: 38,
     omzetTahunIni: 0,
-    kesejahteraan: 70,
+    kesejahteraan: cfg.kesejahteraanAwal,
     beritaTerkini: null,
     riwayatBerita: [],
     antrianBerita: [],
@@ -60,14 +60,16 @@ function _stateAwal(mode, namaPetani, namaKebun, seed) {
 }
 
 export function stateAwal() {
+  // Gunakan difficulty 'easy' sebagai default untuk konsistensi
+  const cfg = DIFFICULTY['easy'];
   return {
     namaPetani: 'Pak Tani',
     namaKebun: 'Kebun Eldoria',
     mode: 'easy',
-    totalGiliran: 12,
+    totalGiliran: cfg.totalGiliran,
     giliran: 1,
     seed: 0,
-    kasSelga: 24_000_000,
+    kasSelga: cfg.kasAwal,
     kasGC: 0,
     kurs: KURS_AWAL,
     riwayatKurs: [KURS_AWAL],
@@ -81,7 +83,7 @@ export function stateAwal() {
     biayaKeluargaLokal: 1_650_000,
     biayaKeluargaImporGC: 38,
     omzetTahunIni: 0,
-    kesejahteraan: 70,
+    kesejahteraan: cfg.kesejahteraanAwal,
     beritaTerkini: null,
     riwayatBerita: [],
     antrianBerita: [],
@@ -263,9 +265,21 @@ export function gameReducer(state, action) {
       const cfg = DIFFICULTY[s.mode];
 
       // Resolusi
-      pungutBunga(s, cfg);
-      pungutTagihanBulanan(s, cfg.inflasiBiayaHidup);
-      tekanKesejahteraan(s);
+      const bunga = pungutBunga(s, cfg);
+      if (bunga > 0) {
+        s.log.push(`[Bulan ${s.giliran}] BUNGA pinjaman +${fmt(bunga)} (total utang: ${fmt(s.pinjaman)})`);
+      }
+
+      const tagihan = pungutTagihanBulanan(s, cfg.inflasiBiayaHidup);
+      s.log.push(`[Bulan ${s.giliran}] TAGIHAN: listrik ${fmt(Math.round(tagihan.tagihanListrik))} + keluarga ${fmt(Math.round(tagihan.biayaKeluargaBulanan))}${tagihan.tagihanPBB > 0 ? ` + PBB ${fmt(Math.round(tagihan.tagihanPBB))}` : ''} = -${fmt(tagihan.totalTagihan)}`);
+      if (tagihan.inflasiTerjadi) {
+        s.log.push(`[Bulan ${s.giliran}] ⚠️ INFLASI ${(cfg.inflasiBiayaHidup * 100).toFixed(0)}% — biaya hidup naik!`);
+      }
+
+      const decay = tekanKesejahteraan(s);
+      if (decay > 0) {
+        s.log.push(`[Bulan ${s.giliran}] Kesejahteraan -${decay} (sisa: ${s.kesejahteraan})`);
+      }
 
       if (s.kasSelga < 0) {
         const masihDefisit = coverDefisit(s, cfg);
@@ -356,7 +370,12 @@ function mulaiGiliran(s, cfg, rng) {
 }
 
 function pinjamMaks(s, cfg) {
-  return Math.round(s.kasSelga * cfg.capPinjaman);
+  // Hitung net worth (kekayaan bersih) = kas - pinjaman
+  const netWorth = s.kasSelga - s.pinjaman;
+  // Batas total pinjaman berdasarkan net worth, bukan kas total
+  const batasTotal = Math.round(netWorth * cfg.capPinjaman);
+  // Sisa yang bisa dipinjam = batas - pinjaman saat ini
+  return Math.max(0, batasTotal - s.pinjaman);
 }
 
 // ===== Formatter =====

@@ -3,13 +3,14 @@
  * Dari docs/05-aksi-pemain.md + docs/12-ui-ux-design.md §3e, §6
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 import {
   HARGA_KOPI_GC, HARGA_PUPUK_GC, HARGA_BBM_GC, HARGA_BIBIT_GC,
   KAPASITAS_KG_PER_BBM, SPREAD, FAKTOR_TANAM_MAKS,
-  PTKP_UMKM, PPH_FINAL_UMKM,
+  PTKP_UMKM, PPH_FINAL_UMKM, KURS_AWAL,
 } from '../ekonomi.js';
+import { DIFFICULTY } from '../difficulty.js';
 
 export default function DecisionPanel({ state, onDispatch, onLanjutBulan, onBukaChat, chatCount }) {
   const [modalAktif, setModalAktif] = useState(null);
@@ -71,9 +72,9 @@ export default function DecisionPanel({ state, onDispatch, onLanjutBulan, onBuka
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-20 p-2 md:p-4">
-      {/* Tombol Aksi Grid */}
-      <div className="flex items-center justify-center gap-2 md:gap-3 mb-2">
+    <div className="fixed bottom-0 left-0 right-0 z-20 p-2 md:p-4 pb-4 md:pb-6" style={{ background: 'linear-gradient(to top, rgba(92, 74, 46, 0.95) 0%, rgba(92, 74, 46, 0.7) 60%, transparent 100%)' }}>
+      {/* Tombol Aksi Grid + FAB */}
+      <div className="flex items-center justify-center gap-2 md:gap-3">
         {/* Gudang */}
         <ActionButton
           emoji="📦"
@@ -82,6 +83,7 @@ export default function DecisionPanel({ state, onDispatch, onLanjutBulan, onBuka
           onClick={() => setModalAktif('jual')}
           disabled={loading || state.stokKopi <= 0}
           color="#8B6F47"
+          hint={state.stokKopi <= 0 ? "Stok kopi habis" : null}
         />
         {/* Pelabuhan */}
         <ActionButton
@@ -109,6 +111,7 @@ export default function DecisionPanel({ state, onDispatch, onLanjutBulan, onBuka
           onClick={() => setModalAktif('tanam')}
           disabled={loading || state.stokBibit <= 0}
           color="#8B8B4A"
+          hint={state.stokBibit <= 0 ? "Beli bibit di Pelabuhan" : null}
         />
         {/* Koperasi */}
         <ActionButton
@@ -119,22 +122,22 @@ export default function DecisionPanel({ state, onDispatch, onLanjutBulan, onBuka
           disabled={loading}
           color="#8B4A6B"
         />
-      </div>
 
-      {/* FAB Lanjut Bulan */}
-      <button
-        onClick={handleLanjutBulan}
-        disabled={loading}
-        className="absolute right-4 bottom-20 md:bottom-24 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-2xl md:text-3xl font-bold transition-transform transform hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{
-          background: 'linear-gradient(135deg, #FFD700, #B8960F)',
-          color: '#3D2B0F',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
-          fontFamily: "'Fredoka One', cursive",
-        }}
-      >
-        ⏩
-      </button>
+        {/* FAB Lanjut Bulan - inline dengan tombol aksi */}
+        <button
+          onClick={handleLanjutBulan}
+          disabled={loading}
+          className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-2xl md:text-3xl font-bold transition-transform transform hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ml-2"
+          style={{
+            background: 'linear-gradient(135deg, #FFD700, #B8960F)',
+            color: '#3D2B0F',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+            fontFamily: "'Fredoka One', cursive",
+          }}
+        >
+          ⏩
+        </button>
+      </div>
 
       {/* Loading Overlay */}
       {loading && (
@@ -185,22 +188,33 @@ export default function DecisionPanel({ state, onDispatch, onLanjutBulan, onBuka
 
 // ===== Tombol Aksi =====
 
-function ActionButton({ emoji, label, sub, onClick, disabled, color }) {
+function ActionButton({ emoji, label, sub, onClick, disabled, color, hint }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="flex flex-col items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-      style={{
-        background: `linear-gradient(135deg, ${color}, ${color}dd)`,
-        border: `2px solid ${color}88`,
-      }}
-    >
-      <span className="text-xl md:text-2xl">{emoji}</span>
-      <span className="text-[10px] md:text-xs font-bold" style={{ color: '#FFF', fontFamily: "'Fredoka One', cursive" }}>
-        {label}
-      </span>
-    </button>
+    <div className="relative">
+      <button
+        onClick={onClick}
+        disabled={disabled}
+        className="flex flex-col items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{
+          background: `linear-gradient(135deg, ${color}, ${color}dd)`,
+          border: `2px solid ${color}88`,
+        }}
+      >
+        <span className="text-xl md:text-2xl">{emoji}</span>
+        <span className="text-[10px] md:text-xs font-bold" style={{ color: '#FFF', fontFamily: "'Fredoka One', cursive" }}>
+          {label}
+        </span>
+      </button>
+      {/* Hint tooltip saat disabled */}
+      {disabled && hint && (
+        <div
+          className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded text-[9px] font-bold animate-pulse"
+          style={{ background: '#EF4444', color: '#FFF' }}
+        >
+          {hint}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -304,15 +318,24 @@ function ModalImpor({ state, onBeli, onClose }) {
   const [bbm, setBbm] = useState(0);
   const [bibit, setBibit] = useState(0);
 
-  const biayaPupuk = pupuk * HARGA_PUPUK_GC * state.kurs;
-  const biayaBbm = bbm * HARGA_BBM_GC * state.kurs;
-  const biayaBibit = bibit * HARGA_BIBIT_GC * state.kurs;
+  const hargaPupukSelga = HARGA_PUPUK_GC * state.kurs;
+  const hargaBbmSelga = HARGA_BBM_GC * state.kurs;
+  const hargaBibitSelga = HARGA_BIBIT_GC * state.kurs;
+
+  const biayaPupuk = pupuk * hargaPupukSelga;
+  const biayaBbm = bbm * hargaBbmSelga;
+  const biayaBibit = bibit * hargaBibitSelga;
   const totalBiaya = Math.round(biayaPupuk + biayaBbm + biayaBibit);
 
+  // Calculate max for each item based on remaining budget (excluding this item's cost)
+  const sisaUntukPupuk = state.kasSelga - biayaBbm - biayaBibit;
+  const sisaUntukBbm = state.kasSelga - biayaPupuk - biayaBibit;
+  const sisaUntukBibit = state.kasSelga - biayaPupuk - biayaBbm;
+
   const items = [
-    { label: 'Pupuk 🧪', harga: HARGA_PUPUK_GC, value: pupuk, set: setPupuk, stok: state.stokPupuk },
-    { label: 'BBM ⛽', harga: HARGA_BBM_GC, value: bbm, set: setBbm, stok: state.stokBBM },
-    { label: 'Bibit 🌱', harga: HARGA_BIBIT_GC, value: bibit, set: setBibit, stok: state.stokBibit },
+    { label: 'Pupuk 🧪', harga: HARGA_PUPUK_GC, hargaSelga: hargaPupukSelga, value: pupuk, set: setPupuk, stok: state.stokPupuk, sisa: sisaUntukPupuk },
+    { label: 'BBM ⛽', harga: HARGA_BBM_GC, hargaSelga: hargaBbmSelga, value: bbm, set: setBbm, stok: state.stokBBM, sisa: sisaUntukBbm },
+    { label: 'Bibit 🌱', harga: HARGA_BIBIT_GC, hargaSelga: hargaBibitSelga, value: bibit, set: setBibit, stok: state.stokBibit, sisa: sisaUntukBibit },
   ];
 
   return (
@@ -325,18 +348,21 @@ function ModalImpor({ state, onBeli, onClose }) {
           </div>
         </div>
 
-        {items.map((item) => (
-          <div key={item.label} className="rounded-lg p-3" style={{ background: 'rgba(0,0,0,0.2)' }}>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-bold" style={{ color: '#FFF8E7' }}>{item.label}</span>
-              <span className="text-xs" style={{ color: '#D4A76A' }}>Stok: {item.stok}</span>
+        {items.map((item) => {
+          const maxAfford = Math.max(0, Math.floor(item.sisa / item.hargaSelga));
+          return (
+            <div key={item.label} className="rounded-lg p-3" style={{ background: 'rgba(0,0,0,0.2)' }}>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-bold" style={{ color: '#FFF8E7' }}>{item.label}</span>
+                <span className="text-xs" style={{ color: '#D4A76A' }}>Stok: {item.stok}</span>
+              </div>
+              <div className="text-xs mb-2" style={{ color: '#D4A76A' }}>
+                Harga: {item.harga} GC = <b>{fmt(Math.round(item.hargaSelga))} Selga</b>/unit
+              </div>
+              <Stepper value={item.value} min={0} max={maxAfford} onChange={item.set} />
             </div>
-            <div className="text-xs mb-2" style={{ color: '#D4A76A' }}>
-              Harga: {item.harga} GC = <b>{fmt(item.harga * state.kurs)} Selga</b>/unit
-            </div>
-            <Stepper value={item.value} min={0} max={Math.floor(state.kasSelga / (item.harga * state.kurs)) + item.value} onChange={item.set} />
-          </div>
-        ))}
+          );
+        })}
 
         {/* Preview Total */}
         <div className="rounded-lg p-3 text-center" style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #EF4444' }}>
@@ -480,9 +506,13 @@ function ModalKoperasi({ state, onAksi, onClose }) {
   const [tab, setTab] = useState('pinjam');
   const [jumlah, setJumlah] = useState(0);
 
-  const pinjamMaks = Math.round(state.kasSelga * (state.mode === 'hard' ? 0.5 : 1.0));
-  const bisaPinjam = Math.max(0, pinjamMaks - state.pinjaman);
-  const bungaAktual = (state.mode === 'easy' ? 0.03 : state.mode === 'medium' ? 0.04 : 0.05) * Math.max(1, state.kurs / 15_000);
+  const cfg = DIFFICULTY[state.mode] || DIFFICULTY.easy;
+  // Net worth = kas - pinjaman (kekayaan bersih, bukan kas total)
+  const netWorth = state.kasSelga - state.pinjaman;
+  const batasTotal = Math.round(netWorth * cfg.capPinjaman);
+  const bisaPinjam = Math.max(0, batasTotal - state.pinjaman);
+  // Bunga floating: naik jika kurs melemah (di atas 15.000)
+  const bungaAktual = cfg.bungaKoperasi * Math.max(1, state.kurs / KURS_AWAL);
 
   return (
     <ModalShell title="🤝 Koperasi Desa" onClose={onClose}>
@@ -509,12 +539,22 @@ function ModalKoperasi({ state, onAksi, onClose }) {
             Pinjaman aktif: <b style={{ color: '#FFD700' }}>{fmt(state.pinjaman)} Selga</b>
           </div>
           <div className="text-xs mt-1" style={{ color: '#EF4444' }}>
-            Bunga: {(bungaAktual * 100).toFixed(1)}%{bungaAktual > 0.05 ? ' (floating naik!)' : ''}
+            Bunga: {(bungaAktual * 100).toFixed(1)}%/bulan{bungaAktual > 0.05 ? ' (floating naik!)' : ''}
+            {state.pinjaman > 0 && (
+              <span> = <b>{fmt(Math.round(state.pinjaman * bungaAktual))}</b>/bulan</span>
+            )}
           </div>
           {tab === 'pinjam' && (
-            <div className="text-xs mt-1" style={{ color: '#22C55E' }}>
-              Bisa pinjam maks: {fmt(bisaPinjam)}
-            </div>
+            <>
+              <div className="text-xs mt-1" style={{ color: '#22C55E' }}>
+                Bisa pinjam maks: {fmt(bisaPinjam)}
+              </div>
+              {jumlah > 0 && (
+                <div className="text-xs mt-1" style={{ color: '#F59E0B' }}>
+                  ⚠️ Jika pinjam {fmt(jumlah)}, bunga/bulan: <b>{fmt(Math.round((state.pinjaman + jumlah) * bungaAktual))}</b>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -576,25 +616,143 @@ function ModalShell({ title, children, onClose }) {
 }
 
 function Stepper({ value, min, max, step = 1, onChange }) {
+  const intervalRef = useRef(null);
+  const timeoutRef = useRef(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  const stopIncrement = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
+
+  const startIncrement = useCallback((direction) => {
+    const doStep = () => {
+      onChange((prev) => {
+        const newVal = direction === 'up'
+          ? Math.min(max, prev + step)
+          : Math.max(min, prev - step);
+        return newVal;
+      });
+    };
+
+    // Immediate first step
+    doStep();
+
+    // After 300ms delay, start rapid increment every 80ms
+    timeoutRef.current = setTimeout(() => {
+      intervalRef.current = setInterval(doStep, 80);
+    }, 300);
+  }, [max, min, step, onChange]);
+
+  const handleInputSubmit = () => {
+    const parsed = parseInt(inputValue.replace(/\D/g, ''), 10);
+    if (!isNaN(parsed)) {
+      const clamped = Math.max(min, Math.min(max, parsed));
+      // Round to nearest step
+      const rounded = Math.round(clamped / step) * step;
+      onChange(rounded);
+    }
+    setIsEditing(false);
+  };
+
   return (
-    <div className="flex items-center gap-3">
-      <button
-        onClick={() => onChange(Math.max(min, value - (step || 1)))}
-        disabled={value <= min}
-        className="w-12 h-12 rounded-lg bg-amber-700 text-white font-bold text-xl hover:bg-amber-600 disabled:opacity-50"
-      >
-        −
-      </button>
-      <div className="flex-1 text-center text-lg font-bold" style={{ color: '#FFD700', fontFamily: "'Fredoka One', cursive" }}>
-        {fmt(value)}
+    <div className="space-y-2">
+      {/* Main stepper row */}
+      <div className="flex items-center gap-2">
+        <button
+          onMouseDown={() => startIncrement('down')}
+          onMouseUp={stopIncrement}
+          onMouseLeave={stopIncrement}
+          onTouchStart={() => startIncrement('down')}
+          onTouchEnd={stopIncrement}
+          disabled={value <= min}
+          className="w-12 h-12 rounded-lg bg-amber-700 text-white font-bold text-xl hover:bg-amber-600 active:bg-amber-800 disabled:opacity-50 select-none"
+        >
+          −
+        </button>
+
+        {/* Editable value */}
+        {isEditing ? (
+          <input
+            type="text"
+            inputMode="numeric"
+            autoFocus
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onBlur={handleInputSubmit}
+            onKeyDown={(e) => e.key === 'Enter' && handleInputSubmit()}
+            className="flex-1 text-center text-lg font-bold bg-amber-900 rounded-lg py-2 outline-none"
+            style={{ color: '#FFD700', fontFamily: "'Fredoka One', cursive" }}
+          />
+        ) : (
+          <button
+            onClick={() => { setInputValue(String(value)); setIsEditing(true); }}
+            className="flex-1 text-center text-lg font-bold py-2 rounded-lg hover:bg-amber-900/50 transition-colors"
+            style={{ color: '#FFD700', fontFamily: "'Fredoka One', cursive" }}
+            title="Klik untuk input langsung"
+          >
+            {fmt(value)}
+          </button>
+        )}
+
+        <button
+          onMouseDown={() => startIncrement('up')}
+          onMouseUp={stopIncrement}
+          onMouseLeave={stopIncrement}
+          onTouchStart={() => startIncrement('up')}
+          onTouchEnd={stopIncrement}
+          disabled={value >= max}
+          className="w-12 h-12 rounded-lg bg-amber-700 text-white font-bold text-xl hover:bg-amber-600 active:bg-amber-800 disabled:opacity-50 select-none"
+        >
+          +
+        </button>
       </div>
-      <button
-        onClick={() => onChange(Math.min(max, value + (step || 1)))}
-        disabled={value >= max}
-        className="w-12 h-12 rounded-lg bg-amber-700 text-white font-bold text-xl hover:bg-amber-600 disabled:opacity-50"
-      >
-        +
-      </button>
+
+      {/* Quick preset buttons */}
+      <div className="flex gap-1 justify-center">
+        {[
+          { label: 'Min', pct: 0 },
+          { label: '25%', pct: 0.25 },
+          { label: '50%', pct: 0.5 },
+          { label: '75%', pct: 0.75 },
+          { label: 'Max', pct: 1 },
+        ].map(({ label, pct }) => {
+          const targetValue = pct === 0 ? min : pct === 1 ? max : Math.round((min + (max - min) * pct) / step) * step;
+          // Use boundary checks for Min/Max to handle dynamic max recalculation
+          const isActive = pct === 0 ? value <= min
+                         : pct === 1 ? value >= max
+                         : value === targetValue;
+          return (
+            <button
+              key={label}
+              onClick={() => !isActive && onChange(targetValue)}
+              disabled={isActive}
+              className={`px-3 py-1 text-xs rounded transition-colors ${
+                isActive
+                  ? 'bg-amber-600 text-white cursor-default'
+                  : 'bg-amber-900/60 text-amber-300 hover:bg-amber-800'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
