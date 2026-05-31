@@ -64,7 +64,7 @@ Panel-panel ini muncul menutupi layar. Semua menggunakan teknik 9-Slice.
 - **Menu Gudang (Jual Kopi):**
   - *Slider Bar:* Jalur *slider* (garis kayu cekung panjang) dan kenop *slider* (batu/kayu bulat tebal).
   - *Stepper:* Tombol kecil kotak `[ - ]` dan `[ + ]`.
-  - *Meteran Pajak:* Bar progres lurus/memanjang untuk indikator "Omzet PTKP 500 Juta".
+  - *Meteran Pajak:* Bar progres lurus/memanjang untuk indikator "Omzet PTKP 500 Juta". **Bersifat aspirasional** (lihat catatan PPh di `03`): ambang 500 jt jarang tersentuh di permainan normal, jadi bar ini umumnya terisi tipis — itu wajar. Desain bar harus tetap "enak dilihat walau hampir kosong" (mis. tampilkan persen kecil + tooltip "target usaha besar"), bukan terkesan progres yang macet/rusak.
   - *Stempel Pajak:* Aset stempel merah miring transparan bertuliskan "PAJAK DIBAYAR".
 - **Menu Pelabuhan (Beli Impor):**
   - *Indikator Kurs:* Aset panah miring tebal berukuran kecil ke arah atas (merah/bahaya) dan ke bawah (hijau/aman).

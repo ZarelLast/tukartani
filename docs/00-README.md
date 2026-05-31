@@ -44,7 +44,11 @@ Tiga aturan ini mencegah AI mengarang ulang hal yang sudah ditetapkan
 | `08-skor-dan-rapor.md` | kondisi akhir, skor, rapor edukasi | endgame |
 | `09-deployment.md` | Cloud Run + proxy Gemini | infra |
 | `10-roadmap-build.md` | urutan build berlapis + acceptance criteria | proses |
-| `11-event-cadangan.md` | 15 event fiksi hardcoded (MVP + fallback + template narasi) | tabel event |
+| `11-event-cadangan.md` | 90 event fiksi hardcoded, 15/kategori (MVP + fallback + seed AI) | tabel event |
+| `12-ui-ux-design.md` | konsep UI/UX game-first, layout fase, juiciness, layar akhir | desain interaksi |
+| `13-aset-objek.md` | panduan aset objek (karakter, barang, background, animasi/VFX) | aset objek |
+| `14-aset-layout-ui.md` | panduan aset UI (panel, tombol, HUD, modal, 9-slice) | aset UI |
+| `15-aset-manifest.md` | manifest aset + struktur folder + penamaan + peta aset→komponen | inventaris aset |
 
 ---
 
@@ -63,7 +67,18 @@ Tiga aturan ini mencegah AI mengarang ulang hal yang sudah ditetapkan
 07 frontend ────► 02, 05 (render state, dispatch aksi) + RNG + save
 09 deployment ──► 06 (proxy untuk panggilan AI)
 10 roadmap ─────► semua (urutan & acceptance per lapis)
+
+12 ui/ux ───────► 05 (aksi→tombol), 08 (layar akhir)  [lapisan presentasi]
+13 aset-objek ──► 12 (visualisasikan scene/karakter/VFX)
+14 aset-ui ─────► 12 (panel/tombol/HUD untuk layout)
+15 manifest ────► 12, 13, 14, 07 (inventaris + struktur folder + peta ke komponen)
 ```
+
+> **Catatan lapisan presentasi:** `12/13/14/15` adalah desain visual & aset. Mereka
+> **tunduk pada** logika `02/03/05` (tak boleh mengubah mekanik), dan dieksekusi
+> di lapis UI/poles (lihat `10` Lapis 4–5). `12` = konsep interaksi, `13` = aset
+> objek (karakter/barang/animasi), `14` = aset tampilan UI (panel/tombol/HUD),
+> `15` = manifest yang menata semuanya (folder, penamaan, peta aset→komponen).
 
 **Inti yang tak boleh kabur:** `03-ekonomi.md` adalah jantungnya. Kalau ragu,
 file lain tunduk pada angka & invariant di sana.
@@ -79,7 +94,10 @@ file lain tunduk pada angka & invariant di sana.
 4. `07-frontend-react.md` → UI + mobile + save (game bisa dimainkan manusia).
 5. `06-ai-integrasi.md` → ganti tabel event hardcoded dengan AI.
 6. `08-skor-dan-rapor.md` → layar akhir.
-7. `09-deployment.md` → rilis.
+7. `12/13/14/15` → poles visual game-first (Phaser scene, aset, juiciness).
+   `15` = manifest aset (folder, penamaan, peta ke komponen). Lapisan kosmetik —
+   dibangun di atas game yang sudah jalan, bukan menggantikan logika.
+8. `09-deployment.md` → rilis.
 
 > **Prinsip:** tiap lapis menghasilkan versi yang *jalan*. Jangan lanjut lapis
 > berikut sebelum lapis sekarang lulus acceptance criteria-nya (`10`).
@@ -88,7 +106,10 @@ file lain tunduk pada angka & invariant di sana.
 
 ## Mata Uang & Istilah (glosarium cepat)
 
-- **Selga** = mata uang lokal Desa Senandu.
+- **Sylvarion** = nama **negeri/dunia fiksi** tempat game berlangsung (anchor keamanan
+  AI; lihat `06`). Bukan nama nyata.
+- **Desa Eldoria** = **desa** tempat pemain bertani, berada di dalam Negeri Sylvarion.
+- **Selga** = mata uang lokal Desa Eldoria / Negeri Sylvarion.
 - **GC (Gold Coins)** = mata uang dunia, patokan ekspor & impor. **Tidak
   menghasilkan bunga** (biaya peluang memegangnya disengaja).
 - **Kurs** = berapa Selga untuk 1 GC. **Kurs naik = Selga melemah.**

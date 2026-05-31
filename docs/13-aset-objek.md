@@ -18,10 +18,10 @@ Gaya visual "Cartoonish" dalam game simulasi ekonomi ini dibumbui oleh lore **"M
 ## 2. Backgrounds (Latar Belakang Utama)
 **Dimensi Target:** 1920x1080px (16:9). Ekspor sebagai JPEG high-quality atau PNG untuk layar utama.
 **Art Style:** Lukisan digital tanpa *lineart* (painterly/vector), palet warna pastel/vibrant.
-- **Negara Elf - Desa Senandu (Siang/Normal):** 
+- **Negara Elf - Desa Eldoria (Siang/Normal):** 
   - *Deskripsi Visual:* Kebun kopi berundak (terasering) dengan gubuk kayu yang memiliki sentuhan arsitektur khas Elf (atap melengkung elegan, sulur tanaman merambat) berpadu dengan elemen pertanian modern (seperti termometer tanah digital atau pompa irigasi).
   - *Warna:* Hijau rumput cerah, langit cyan, atap gubuk coklat bata dengan aksen emas atau hijau zamrud tipis.
-- **Negara Elf - Desa Senandu (Mendung/Krisis):** 
+- **Negara Elf - Desa Eldoria (Mendung/Krisis):** 
   - *Deskripsi Visual:* Suasana sama, namun pencahayaan redup. Awan kelabu tebal, rintik hujan, dan elemen magis/alam terlihat kehilangan cahayanya (meredup).
   - *Warna:* Hijau kebiruan (*desaturated*), langit abu-abu, *overlay* biru gelap 20%.
 

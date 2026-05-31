@@ -16,7 +16,7 @@
 type GameState = {
   // identitas & meta
   namaPetani: string;       // input pemain (maks 20 char, default "Pak Tani")
-  namaKebun: string;        // input pemain (maks 20 char, default "Kebun Mukti")
+  namaKebun: string;        // input pemain (maks 20 char, default "Kebun Eldoria")
   mode: "easy" | "medium" | "hard";
   totalGiliran: number;     // dari DIFFICULTY (12/36/60) — lihat 04
   giliran: number;          // 1..totalGiliran
@@ -65,13 +65,13 @@ type Fase = "berita" | "panen" | "keputusan" | "resolusi" | "selesai";
 | antrianBerita | [] (diisi saat sesi mulai / awal tahun, lihat 06 §news-cache) |
 | stokKopi | 100 |
 | stokPupuk | 4 |
-| stokBBM | 2 |
+| stokBBM | 4 |
 | stokBibit | 0 |
 | faktorTanam | 1.0 |
 | panenTerakhir | 0 |
 | pinjaman | 0 |
-| biayaKeluargaLokal | 150.000 |
-| biayaKeluargaImporGC | 10 |
+| biayaKeluargaLokal | 1.650.000 |
+| biayaKeluargaImporGC | 38 |
 | omzetTahunIni | 0 |
 | kesejahteraan | 70 |
 | giliran | 1 |
@@ -112,9 +112,9 @@ type Berita = {
 ```ts
 type Aksi =
   | { type: "JUAL_KOPI";   payload: { kg: number; konversiKeSelga: boolean } }
-  | { type: "BELI_IMPOR";  payload: { pupuk: number; bbm: number } }
+  | { type: "BELI_IMPOR";  payload: { pupuk: number; bbm: number; bibit: number } }
   | { type: "TUKAR";       payload: { arah: "SELGA_KE_GC" | "GC_KE_SELGA"; jumlah: number } }
-  | { type: "TANAM";       payload: { investasiSelga: number } }
+  | { type: "TANAM";       payload: { jumlahBibit: number } }
   | { type: "KOPERASI";    payload: { aksi: "PINJAM" | "BAYAR" | "BANTU_TETANGGA"; jumlah: number } }
   | { type: "LEWATI" }
   | { type: "LANJUT_BULAN" }     // memicu Resolusi + Berita + Panen giliran berikut

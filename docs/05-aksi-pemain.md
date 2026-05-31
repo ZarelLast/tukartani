@@ -24,7 +24,7 @@ Pemain boleh melakukan beberapa aksi dalam satu Fase Keputusan sampai menekan
   `potonganPajak = porsiKenaPajak * PPH_FINAL_UMKM`.
 - Jika `konversiKeSelga`: `kasSelga += (nilaiSelga - potonganPajak)`.
 - Jika tidak: `kasGC += hasilGC`; `kasSelga -= potonganPajak` (pajak dibayar pakai kas lokal).
-- *Pelajaran: jual saat Selga lemah. Omzet di atas 500 juta memicu PPh riil.*
+- *Pelajaran: jual saat Selga lemah. Omzet di atas 500 juta memicu PPh riil. Jangan menimbun kopi terlalu lama karena akan membusuk (Spoilage) 5% tiap bulan!*
 
 ## 2. BELI_IMPOR `{ pupuk, bbm, bibit }`
 - `biaya = (pupuk*HARGA_PUPUK_GC + bbm*HARGA_BBM_GC + bibit*HARGA_BIBIT_GC) * kurs` (§harga).
@@ -44,22 +44,26 @@ Pemain boleh melakukan beberapa aksi dalam satu Fase Keputusan sampai menekan
 - Validasi: `jumlahBibit <= stokBibit`.
 - `stokBibit -= jumlahBibit`; panggil `tanam(s, jumlahBibit)` (§investasi) →
   `faktorTanam` naik, dibatasi `FAKTOR_TANAM_MAKS`.
-- Risiko: bibit adalah barang modal yang harus diimpor di waktu yang tepat.
+- Risiko: bibit diimpor di waktu yang tepat untuk melawan penyusutan kebun (Capital Depreciation) tiap akhir tahun.
 
 ## 5. KOPERASI `{ aksi, jumlah }`
 - `PINJAM`: validasi `jumlah <= pinjamMaks(s, cfg)` (§koperasi). `kasSelga += jumlah`;
-  `pinjaman += jumlah`. Bunga dipungut tiap Resolusi (`pungutBunga(s, cfg)`).
+  `pinjaman += jumlah`. Hati-hati jebakan utang.
 - `BAYAR`: validasi `jumlah <= min(kasSelga, pinjaman)`. `kasSelga -= jumlah`;
   `pinjaman -= jumlah`.
+- `BUNGA`: dipungut otomatis tiap bulan pada Fase Resolusi (`pungutBunga()`). Suku bunga bersifat *Floating Rate*: jika kurs Selga melemah (krisis), bunga utang otomatis meroket!
 - `BANTU_TETANGGA`: validasi `jumlah <= kasSelga`. `kasSelga -= jumlah`;
   `kesejahteraan = clamp(kesejahteraan + naikSejahtera(jumlah), 0, 100)`.
   Saran: `naikSejahtera = floor(jumlah / 100_000)` poin (mis. 500rb → +5).
 - *Karena kesejahteraan jadi MULTIPLIER skor (`08`), bantu tetangga punya nilai
-  nyata, bukan dominated action.*
+  kompetitif di late game, bukan sekadar donasi buta.*
 
 ## 6. LEWATI
 - Tidak melakukan apa-apa. **Tapi tagihan bulanan tetap dipungut saat Resolusi** →
   pasif total = pelan-pelan kalah. Kadang tetap pilihan terbaik (menunggu kurs).
+- **Pemetaan UI (`12`):** LEWATI **tidak punya tombol khusus** — pemain cukup
+  menekan "Lanjut Bulan" tanpa beraksi. Jadi UI = 5 tombol operasional + 1 FAB
+  Lanjut Bulan (transisi), bukan 6 tombol.
 
 ---
 

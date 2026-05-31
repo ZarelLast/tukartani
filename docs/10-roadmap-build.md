@@ -33,7 +33,7 @@ Implementasi: `02-tipe`, `03-ekonomi` (LENGKAP, termasуk §jadwal/§kesejahtera
 - [ ] **Uji exploit:** arbitrase tukar bolak-balik 5 giliran tanpa bertani →
       RUGI (spread + biaya hidup). Kalau untung, `03 §Invariant` dilanggar.
 - [ ] **Cek kalibrasi (§kalibrasi):** sesi Easy "main wajar" → kekayaan akhir
-      ~1,5–1,8× modal awal (bukan 2,5×+). Bertani terasa perlu.
+      ~1,3–1,6× modal awal (bukan 2,5×+). Bertani terasa perlu.
 - [ ] Reload halaman → lanjut dari giliran terakhir (save + RNG seed sama).
 
 ### Lapis 2 — Difficulty modes
@@ -77,14 +77,23 @@ Implementasi: `06 §6b` (scope-lock + cek output + cap), `06 §voice`,
       tersembunyi & mode ketik tetap jalan; tak ada error.
 - [ ] STT `id-ID` → hasil masuk alur tanya yang sama (lewat semua pengaman).
 
-### Lapis 5 — Skor & Rapor + Poles UX
-Implementasi: `08`, `07 EndScreen`, `KursChart`, animasi/ikon/suara.
+### Lapis 5 — Skor & Rapor + Poles UX (termasuk Phaser & aset)
+Implementasi: `08`, `07 EndScreen`, `KursChart`. **Di sinilah lapisan visual
+game-first dipasang:** Phaser `GameCanvas` ("Orion Protocol" di `07`), scene &
+karakter (`13`), panel/HUD/tombol (`14`), interaksi & juiciness (`12`),
+**produksi aset mengikuti manifest `15`** (struktur folder, penamaan, prioritas
+P0/P1), animasi/ikon/suara. Sebelum lapis ini, game berjalan DOM-only (React murni).
 
 **Acceptance:**
 - [ ] Skor pakai kesejahteraan sebagai multiplier (`08`).
 - [ ] Rapor edukasi muncul (AI atau fallback deterministik).
-- [ ] **Uji mobile:** enak di 390px, tombol ≥44px, tak ada scroll horizontal,
-      tak ada info hover-only.
+- [ ] **Phaser terpasang tanpa mengubah logika:** `gameReducer`/`ekonomi` tak
+      disentuh; canvas hanya membaca state & memutar animasi. Game tetap
+      bisa dimainkan kalau canvas dimatikan (DOM fallback).
+- [ ] **Visual Delay & UX-lock** (`07`/`12`): HUD update setelah partikel mendarat;
+      tombol terkunci selama animasi (anti-spam) tanpa merusak `LogicalState`.
+- [ ] **Uji mobile:** enak di 390px, tombol ≥44px (FAB Lanjut ≥64px), tak ada
+      scroll horizontal, tak ada info hover-only, safe-area dihormati (`12`).
 
 ### Lapis 6 — Deploy
 Implementasi: `09`. Bisa lebih awal untuk testing; pastikan stabil sebelum
@@ -98,22 +107,37 @@ penilaian.
 
 ## §kalibrasi — Dasar Angka (hasil simulasi, bukan tebakan)
 
-Konstanta harga/panen di `03` dikalibrasi via simulasi 400 seed/mode, pemain
-"jual-semua + jaga pupuk + hedge saat kurs lemah":
+Angka di `03/04` **di-anchor ke rupiah nyata** (GC ≈ USD, Selga ≈ IDR, kurs
+15.000 ≈ IDR/USD). Contoh figur yang dilihat pemain di awal: harga kopi
+~Rp 63.000/kg, biaya keluarga ~Rp 2,22 jt/bulan, listrik ~Rp 100–190 rb/bulan,
+pupuk ~Rp 120 rb/karung, PBB ~Rp 500 rb/tahun — semuanya believable.
 
-| Mode | Pertumbuhan kekayaan (median) | Bangkrut | Kesejahteraan akhir (abai tetangga) |
-|---|---|---|---|
-| Easy (12) | ~1,6× | 0% | ~58 |
-| Medium (36) | ~4,1× | ~8% | ~34 |
-| Hard (60) | ~10× nominal* | ~14% | ~10 (mepet kalah) |
+Disimulasi 500 seed/mode dengan model `03` terkini. **Hasil sangat bergantung
+pada kualitas main — dan jurang itu memang pelajarannya:**
 
-\*Hard 10× itu **nominal** (kurs naik ~+30% dari drift+krisis selama 5 thn);
-tekanan sebenarnya lewat **kesejahteraan & bangkrut**, bukan kekayaan — sesuai
-desain. Default lama (`KOPI 2.0/BASIS 60`) memberi 2,7× di Easy tanpa risiko =
-terlalu snowball; karena itu diturunkan ke `KOPI 1.6/PUPUK 6/BASIS 40`.
+| Mode | Cermat¹ (growth · bangkrut) | Ceroboh² (bangkrut) |
+|---|---|---|
+| Easy (12) | ~1,42× · 0% | ~2% |
+| Medium (36) | ~3,5× · 0% (welfare ~46) | ~20% |
+| Hard (60) | ~8,0× · ~0% (welfare ~46) | ~22% |
+
+¹ **Cermat** = jaga buffer kas ≥2× tagihan, hedge ke GC saat kurs murah, sesekali
+BANTU_TETANGGA agar welfare tak jatuh.
+² **Ceroboh** = timbun GC tanpa sisakan Selga untuk tagihan, abaikan tetangga →
+likuidasi paksa beruntun (−8 welfare tiap kali) → bisa "keluarga hancur".
+
+> **Inilah desain yang benar:** angka realistis membuat margin tani **tipis tapi
+> positif** (seperti petani sungguhan). Pemain yang mengelola kas & lindung nilai
+> menang stabil; yang ceroboh bangkrut. Crisis-stacking (`03 §makro`) memperbesar
+> jurang ini — itu fitur, bukan bug. Hard 8× itu **nominal** (kurs naik selama 5
+> thn); tekanan sebenarnya di welfare & risiko bangkrut.
+
+> Saat playtest manusia, bandingkan: Easy main wajar harus **~1,3–1,6×, bangkrut
+> 0%**. Kalau Easy >1,9× atau sering bangkrut, ada konstanta yang meleset dari
+> tabel `03/04`.
 
 > Saat playtest manusia, bandingkan dengan tabel ini. Kalau jauh meleset
-> (mis. Easy >2,2× atau bangkrut Easy >0%), cek apakah ada konstanta yang
+> (mis. Easy >1,9× atau bangkrut Easy >0%), cek apakah ada konstanta yang
 > berubah atau sebuah aksi yang belum kena sink.
 
 ## Pemetaan ke Kriteria Lomba

@@ -26,7 +26,7 @@ Tema ini dirancang tidak hanya untuk estetika, melainkan sebagai alat psikologis
   - *Secondary:* Coklat Kayu (Wood/Leather) untuk UI panel pendukung.
   - *Accent:* Merah Tomat (Kritis/Peringatan) digunakan seminimal mungkin untuk memicu *urgency* instan, kontras dengan Biru Langit (Aksi Positif).
 - **Tipografi:** Gunakan font *rounded* atau *hand-drawn* yang *chunky* (misal: Fredoka One atau Baloo) untuk heading/angka, dan font Sans-Serif bersih (misal: Quicksand) untuk body text agar tetap terbaca (*legible*).
-- **Latar Belakang (Scene):** Pemandangan statis Desa Senandu atau area beranda gubuk petani dengan komposisi *rule of thirds*. Layar *dim* (hitam transparan 40%) saat popup menu terbuka.
+- **Latar Belakang (Scene):** Pemandangan statis Desa Eldoria atau area beranda gubuk petani dengan komposisi *rule of thirds*. Layar *dim* (hitam transparan 40%) saat popup menu terbuka.
 
 ## 3. Layout Layar Utama (The Game Scene) & Grid System
 
@@ -41,7 +41,7 @@ Untuk memastikan game tidak terasa seperti halaman web kaku saat dimainkan di sm
 2. **Dynamic Viewport Scaling (vh/vw/vmin/vmax):** 
    - Alih-alih satuan piksel statis (`px`), ukuran panel pop-up dan font akan menggunakan satuan berbasis viewport (contoh: `min(80vw, 400px)`). Ini memastikan UI terlihat proporsional; tidak terlalu besar di PC dan tidak terlalu kecil di mobile.
 3. **Behavior Orientation (Media Query `orientation`):**
-   - **Di PC/Landscape (`orientation: landscape`):** HUD menyebar ke sudut (Uang di kanan atas, Kalender di kiri atas). Memberikan ruang pandang (Focal Point) terbuka di tengah untuk scene Desa Senandu.
+   - **Di PC/Landscape (`orientation: landscape`):** HUD menyebar ke sudut (Uang di kanan atas, Kalender di kiri atas). Memberikan ruang pandang (Focal Point) terbuka di tengah untuk scene Desa Eldoria.
    - **Di Mobile/Portrait (`orientation: portrait`):** HUD akan melakukan teknik **Stacking & Wrapping** menggunakan CSS Flexbox (`flex-wrap: wrap; justify-content: center;`). Elemen yang terpisah jauh ditarik berdekatan ke area atas-tengah (*top-center*) agar masuk dalam jangkauan mata pengguna portrait.
 4. **Action Ring & Fitts's Law (Touch Target Minimum):** 
    - Mengikuti hukum Fitts (Fitts's Law) dan pedoman *Human Interface Guidelines*, semakin dekat dan besar sebuah tombol, semakin cepat diakses. 
@@ -52,12 +52,12 @@ Untuk memastikan game tidak terasa seperti halaman web kaku saat dimainkan di sm
 
 ### a. Layar Judul (Start Screen) (Z-Index: 100)
 - **Fungsi:** Tempat awal pemain memasukkan *Nama Petani*, *Nama Kebun*, dan memilih *Tingkat Kesulitan* (Easy/Medium/Hard).
-- **Layout:** Kotak dialog kayu besar di tengah layar menutupi pemandangan Desa Senandu yang di-*blur*. Terdapat 2 *input box* teks sederhana dan 3 tombol tebal memanjang.
+- **Layout:** Kotak dialog kayu besar di tengah layar menutupi pemandangan Desa Eldoria yang di-*blur*. Terdapat 2 *input box* teks sederhana dan 3 tombol tebal memanjang.
 
 ### b. HUD (Heads-Up Display) di Atas & Pinggir (Z-Index: 10)
 - **Kiri Atas (Waktu):** Ikon Kalender/Musim (Giliran ke-X). Desain berbentuk sobekan kalender meja.
 - **Kanan Atas (Keuangan & Logistik):** Bar uang (Selga & GC) dalam kontainer kayu (*pill shape*). Tepat di bawahnya, terdapat rentengan *slot* kotak kecil penunjuk stok Inventaris (Kopi, Pupuk, BBM, Bibit) yang mudah dilirik.
-- **Kanan Bawah (Status Mental & Beban):** Bar Hati/Kesejahteraan, berdampingan dengan **Indikator Biaya Hidup Bulan Ini** (ikon api/koin dengan angka merah). Ini krusial agar pemain dapat mengantisipasi tagihan.
+- **Kanan Bawah (Status Mental & Beban):** Bar Hati/Kesejahteraan, berdampingan dengan **Indikator Biaya Hidup Bulan Ini** (ikon api/koin dengan angka merah). Ini krusial agar pemain dapat mengantisipasi tagihan. **Rumus preview** = proyeksi `pungutTagihanBulanan` (`03 §tagihan-bulanan`): `LISTRIK_DASAR + panenTerakhir*LISTRIK_PER_KG_PANEN + biayaKeluargaLokal + biayaKeluargaImporGC*kurs` (+ PBB hanya ditampilkan di bulan ke-12/24/… sebagai badge "PBB jatuh tempo"). Angka berubah merah pekat saat kurs naik agar pemain melihat efek impor.
 
 ### c. Fase Berita (Pop-up Surat / Papan Pengumuman) (Z-Index: 50)
 - **Animasi Masuk:** Slide dari bawah layar, lalu berhenti di tengah dengan efek *overshoot* (membal).
@@ -69,14 +69,22 @@ Panen terjadi secara otomatis sebelum pemain bisa menekan tombol aksi (Fase Kepu
 - **Layout & Transisi:** Kamera (atau fokus UI) berpusat sejenak ke ladang kopi di *background*.
 - **Visual Feedback:** Muncul angka `+XX kg Kopi` mengambang ke atas, diiringi animasi biji kopi bermunculan dari pohon di *background* dan melayang masuk ke indikator "Stok Kopi" di HUD. Ini vital agar pemain sadar mereka baru saja mendapat stok.
 
-### e. Meja Kerja / Action Hub (Tengah & Bawah) (Z-Index: 20)
-Pusat layar menampilkan interaksi utama. Terdapat **5 tombol aksi operasional** ditambah **1 tombol utama (Lewati/Lanjut)**:
-1. 📦 **Gudang (Jual Kopi)**
-2. 🚢 **Pelabuhan (Beli Impor BBM, Pupuk, Bibit)**
-3. 🏦 **Bank Desa (Tukar Uang Selga ↔ GC)**
-4. 🌱 **Ladang (Tanam Bibit)**
-5. 🤝 **Koperasi/Tetangga (Pinjam/Bayar/Bantu)**
-- ⏩ **TOMBOL LANJUT BULAN (Aksi ke-6):** Tombol terpisah berukuran besar (misal di pojok kanan bawah) untuk memicu Resolusi. Di mobile, ke-5 tombol operasional disusun dalam format grid *3-2 stacking*.
+### e.1. Meja Kerja / Action Hub (Tengah & Bawah) (Z-Index: 20)
+Pusat layar menampilkan interaksi utama. Terdapat **5 tombol aksi operasional**
+(memetakan 5 dari 6 aksi di `05`) ditambah **1 tombol transisi Lanjut Bulan**:
+1. 📦 **Gudang (Jual Kopi)** → `JUAL_KOPI`
+2. 🚢 **Pelabuhan (Beli Impor BBM, Pupuk, Bibit)** → `BELI_IMPOR`
+3. 🏦 **Bank Desa (Tukar Uang Selga ↔ GC)** → `TUKAR`
+4. 🌱 **Ladang (Tanam Bibit)** → `TANAM`
+5. 🤝 **Koperasi/Tetangga (Pinjam/Bayar/Bantu)** → `KOPERASI`
+- ⏩ **TOMBOL LANJUT BULAN (transisi, bukan aksi ke-6):** Tombol terpisah besar di
+  pojok kanan bawah untuk memicu Resolusi (`05 LANJUT_BULAN`). Di mobile, ke-5
+  tombol operasional disusun dalam format grid *3-2 stacking*.
+
+> **Catatan aksi ke-6 (`LEWATI`):** `05` mendaftar 6 aksi; aksi ke-6 = **LEWATI**
+> (tidak berbuat apa-apa). Secara UI, LEWATI **tidak punya tombol sendiri** —
+> pemain cukup menekan "Lanjut Bulan" tanpa melakukan aksi apa pun. Jadi: 5 tombol
+> operasional + LANJUT (yang juga merangkap "lewati" bila tak ada aksi dilakukan).
 
 ### f. Fase Resolusi (Tagihan Bulanan) (Z-Index: 60)
 Terjadi instan setelah menekan Lanjut Bulan. Pemain "dipaksa" melihat uang mereka terpotong.
@@ -95,7 +103,7 @@ Pergantian bulan/giliran tidak boleh terjadi secara instan agar pemain merasakan
 
 *Saran Implementasi:* Di mobile (*portrait*), ke-5 tombol operasional disusun dalam format grid *3-2 stacking* agar ukurannya tetap maksimal (minimal 48x48dp). Tombol "Lanjut Bulan" bertindak sebagai *Floating Action Button (FAB)* raksasa (minimal 64x64dp) di sudut kanan bawah, selalu mudah dijangkau jempol.
 
-### e. Grafik Kurs (Buku Catatan / Ledger) (Z-Index: 40)
+### i. Grafik Kurs (Buku Catatan / Ledger) (Z-Index: 40)
 - **Akses:** Melalui ikon Buku Jurnal tebal di pojok kiri bawah.
 - **Visual:** Grafik kurs menyerupai coretan pensil tebal (warna biru dongker/merah tua) di atas kertas bergaris (*grid paper*). Tidak ada garis grid digital, diganti dengan tekstur lipatan kertas.
 

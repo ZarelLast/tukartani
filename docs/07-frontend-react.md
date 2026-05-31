@@ -13,7 +13,7 @@
 ## Arsitektur Integrasi: Phaser JS + React (The "Orion" Protocol)
 
 Game ini menggunakan arsitektur hybrid (bukan full DOM):
-- **Phaser JS (`GameCanvas.jsx`):** Bertanggung jawab atas rendering dunia game (background Desa Senandu, karakter Pak Tani Elf, partikel koin, cuaca, animasi objek). Berjalan di dalam elemen `<canvas>`.
+- **Phaser JS (`GameCanvas.jsx`):** Bertanggung jawab atas rendering dunia game (background Desa Eldoria, karakter Pak Tani Elf, partikel koin, cuaca, animasi objek). Berjalan di dalam elemen `<canvas>`.
 - **React (DOM Overlay):** Bertanggung jawab atas UI yang kompleks (HUD, Menu Aksi, Grafik Recharts, Advisor Chat). Dirender di atas kanvas Phaser menggunakan `position: absolute` dengan `z-index` tinggi.
 
 Interaksi antar keduanya dirancang secara ketat untuk menjaga performa dan "Game Feel":
@@ -34,9 +34,12 @@ src/
   ekonomi.js             // fungsi murni dari 03 (panen, harga, konversi, biaya) — mudah di-test
   rng.js                 // PRNG ber-seed (lihat §RNG)
   api/llm.js             // helper panggil proxy LLM (06 + 09)
+  game/
+    GameCanvas.jsx       // wadah Phaser (scene Desa Eldoria, karakter, partikel/VFX) — lihat "Orion Protocol" & 13
+    eventBus.js          // jembatan React↔Phaser (ANIMATION_COMPLETE, koordinat partikel)
   components/
     StartScreen.jsx      // pilih mode + input nama (§input-nama)
-    Dashboard.jsx        // kas Selga/GC, kurs, stok, kesejahteraan, biaya hidup
+    Dashboard.jsx        // HUD: kas Selga/GC, kurs, stok, kesejahteraan, biaya hidup (overlay di atas canvas)
     KursChart.jsx        // grafik garis riwayatKurs (recharts)
     NewsPanel.jsx        // headline + penjelasan
     DecisionPanel.jsx    // tombol 6 aksi + slider jumlah
@@ -44,6 +47,11 @@ src/
     VoiceControls.jsx    // tombol mic (STT) + toggle TTS; degrade jika API tak ada
     EndScreen.jsx        // skor + rapor edukasi (08)
 ```
+
+> **Catatan urutan build (lihat `10`):** Phaser (`game/`) adalah **lapisan poles
+> Lapis 5**, bukan fondasi. Lapis 1–4 berjalan **DOM-only** (React murni) supaya
+> game bisa dimainkan & diuji sebelum kanvas ada. `GameCanvas` ditambahkan
+> belakangan tanpa mengubah `gameReducer`/`ekonomi`.
 
 **Pola state:** `useReducer` (game = mesin status). `dispatch({type, payload})` →
 reducer **murni** menghitung state baru. Semua angka memanggil `ekonomi.js`
@@ -110,7 +118,7 @@ Rancang untuk ~390px dulu, lebarkan dengan breakpoint (`sm:`/`md:` Tailwind).
 ## §input-nama — Personalisasi + Pengaman
 
 Di `StartScreen` (bareng pilih mode): isi **nama petani** & **nama kebun**.
-- Validasi: `trim()`, maks 20 char, kosong → default ("Pak Tani", "Kebun Mukti").
+- Validasi: `trim()`, maks 20 char, kosong → default ("Pak Tani", "Kebun Eldoria").
 - Saring kata kasar/SARA (daftar kecil cukup untuk lomba).
 - **Prompt injection:** perlakukan nama sebagai data tampilan; jangan kirim ke
   Mesin Kejadian. Detail bungkus aman di `06-ai-integrasi.md §6b`.

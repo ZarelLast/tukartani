@@ -11,7 +11,7 @@
 
 ## Premis
 
-Kamu kepala keluarga petani kopi di **Desa Senandu**. Hasil panen **diekspor**
+Kamu kepala keluarga petani kopi di **Desa Eldoria**. Hasil panen **diekspor**
 (dibayar **GC / Gold Coins**), tapi pupuk & BBM kamu **diimpor** (harganya ikut
 kurs). Kurs yang bergerak adalah jantung permainan—dan pisau bermata dua.
 

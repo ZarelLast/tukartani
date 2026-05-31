@@ -24,31 +24,45 @@ export const DAMPAK_PER_ARAH = 0.04; // tiap poin arah berita = ±4%
 // konversi
 export const SPREAD = 0.015;         // 1.5% gesekan tiap tukar Selga<->GC
 
-// harga (dalam GC) — DIKALIBRASI via simulasi (lihat 10 §kalibrasi). Default
-// lama (2.0/4.0/60) bikin snowball 2,7x di Easy; angka ini beri ramp ~1,6x.
-export const HARGA_KOPI_GC  = 1.6;   // GC per kg, harga dunia dasar
-export const HARGA_PUPUK_GC = 6.0;   // GC per unit
-export const HARGA_BBM_GC   = 1.5;   // GC per unit
-export const HARGA_BIBIT_GC = 15.0;  // GC per unit (bibit harganya ikut valas)
-export const KAPASITAS_KG_PER_BBM = 20; // 1 BBM bisa mengangkut max 20 kg kopi
+// harga (dalam GC) — DIKALIBRASI realistis via simulasi (lihat 10 §kalibrasi).
+// ANCHOR REALISME: GC ≈ USD, Selga ≈ Rupiah, kurs 15.000 ≈ IDR/USD nyata.
+// Jadi harga Selga = harga_GC × 15.000 menghasilkan angka rupiah yang masuk akal
+// (mis. kopi 4.2 GC/kg = ~Rp 63.000/kg — wajar utk kopi olahan/arabika petani).
+export const HARGA_KOPI_GC  = 4.2;   // GC per kg (~Rp 63.000/kg) harga dunia dasar
+export const HARGA_PUPUK_GC = 8.0;   // GC per unit (~Rp 120.000/karung subsidi)
+export const HARGA_BBM_GC   = 1.0;   // GC per unit (~Rp 15.000/liter, harga pompa)
+export const HARGA_BIBIT_GC = 12.0;  // GC per unit (~Rp 180.000/batch; ikut valas)
+export const KAPASITAS_KG_PER_BBM = 25; // 1 BBM bisa mengangkut max 25 kg kopi
 
-// panen
-export const BASIS_PANEN = 40;       // kg per giliran kondisi ideal
+// panen & depresiasi modal
+export const BASIS_PANEN = 60;       // kg per giliran kondisi ideal (~720 kg/thn, smallholder wajar)
 export const KEBUTUHAN_PUPUK = 2;    // unit pupuk terpakai per panen
 export const FAKTOR_TANAM_MAKS = 1.5;
 export const KEBUTUHAN_BIBIT_PER_0_1 = 1; // butuh 1 bibit untuk naik faktor 0.1
+export const PENYUSUTAN_KEBUN_TAHUNAN = 0.1; // kapasitas kebun menyusut per tahun
 export const LANTAI_PANEN = 0.15;    // panen minimum saat pupuk habis (hukuman agar tidak eksploit)
 
-// sink (biaya tetap & variabel)
-export const BIAYA_KELUARGA_LOKAL = 150_000;  // Kebutuhan dasar komponen lokal (Selga)
-export const BIAYA_KELUARGA_IMPOR_GC = 10;    // Kebutuhan komponen impor (GC) -> INFLASI IMPOR
-export const PBB_PER_0_1 = 30_000;            // Pajak Bumi & Bangunan per 0.1 faktorTanam
-export const LISTRIK_DASAR = 25_000;          // Tagihan listrik statis
-export const LISTRIK_PER_KG_PANEN = 500;      // Listrik dinamis pemrosesan kopi (per kg panen)
+// inventaris
+export const SPOILAGE_KOPI_BULANAN = 0.05; // 5% kopi membusuk tiap bulan jika ditimbun
+
+// sink (biaya tetap & variabel) — nilai rupiah realistis (Selga≈IDR)
+export const BIAYA_KELUARGA_LOKAL = 1_650_000;  // Komponen lokal (pangan, jasa desa) per bulan
+export const BIAYA_KELUARGA_IMPOR_GC = 38;      // Komponen impor (~Rp 570rb) -> membengkak saat kurs naik
+// Total biaya keluarga awal ≈ Rp 2,22 jt/bulan (porsi impor ~26%, wajar utk keluarga desa).
+export const PBB_PER_0_1 = 50_000;            // PBB per 0.1 faktorTanam (kebun penuh 1.0 = Rp 500rb/thn)
+export const LISTRIK_DASAR = 100_000;         // Tagihan listrik dasar per bulan
+export const LISTRIK_PER_KG_PANEN = 1_500;    // Listrik pemrosesan/pengeringan per kg panen
 
 // pajak PPh UMKM Realistis (Omzet di atas 500 Juta)
 export const PPH_FINAL_UMKM = 0.005;          // 0.5% dari omzet penjualan
 export const PTKP_UMKM = 500_000_000;         // Batas Penghasilan Tidak Kena Pajak per tahun
+// CATATAN DESAIN (PPh = mekanik ASPIRASIONAL, bukan operasional):
+// PTKP 500jt sesuai PP 55/2022. Pada skala ekonomi game ini (omzet realistis
+// puluhan juta/tahun), ambang ini JARANG tersentuh — itu DISENGAJA & legal-akurat.
+// Fungsinya mendidik: "kalau usahamu tumbuh sangat besar, ada pajak final 0,5%".
+// Meteran PTKP di UI (`14`) menampilkan progres menuju ambang sebagai target
+// aspiratif. JANGAN turunkan PTKP demi 'mengaktifkan' pajak kecuali kamu memang
+// menaikkan skala seluruh ekonomi (harga/volume) — itu rebalance besar (lihat 10).
 
 // kesejahteraan
 export const DECAY_SEJAHTERA = 1;     // turun tiap giliran (hidup keras); diimbangi BANTU_TETANGGA
@@ -100,6 +114,9 @@ biayaBbmSelga   = unit * HARGA_BBM_GC   * kurs;
 
 ```ts
 function panen(s) {
+  // Penyusutan kualitas / Spoilage (Inventory Carrying Cost)
+  s.stokKopi = Math.floor(s.stokKopi * (1 - SPOILAGE_KOPI_BULANAN));
+
   const efektivitas = clamp(s.stokPupuk / KEBUTUHAN_PUPUK, LANTAI_PANEN, 1.0);
   const hasil = Math.round(BASIS_PANEN * efektivitas * s.faktorTanam);
   s.stokKopi += hasil;
@@ -108,7 +125,7 @@ function panen(s) {
   return hasil;
 }
 ```
-Tanpa pupuk → panen turun ke 15% (lantai), tidak nol, agar pemain bisa pulih.
+Tanpa pupuk → panen turun ke 15% (lantai), tidak nol, agar pemain bisa pulih. Kopi di gudang menyusut 5% tiap bulan.
 
 ## §konversi — Selga ↔ GC (spread, anti-arbitrase)
 
@@ -125,6 +142,10 @@ function pungutTagihanBulanan(s, inflasiBiayaHidup) {
   const tagihanListrik = LISTRIK_DASAR + (s.panenTerakhir * LISTRIK_PER_KG_PANEN);
   
   // 2. PBB (Pajak Bumi & Bangunan proporsional ukuran kebun) - DITARIK TAHUNAN
+  //    Ditarik di AKHIR tahun pajak (giliran 12, 24, 36...) — sengaja beda dgn
+  //    blok inflasi/penyusutan yang di AWAL tahun (giliran 13, 25...). Tahun pajak
+  //    = periode akumulasi omzet (PTKP) yang juga ditutup di giliran 12. Di Easy
+  //    (12 giliran) PBB ditarik sekali di giliran terakhir; penyusutan tak terpicu.
   let tagihanPBB = 0;
   if (s.giliran > 0 && s.giliran % 12 === 0) {
     // Menghitung pajak total dari ukuran utuh kebun (1.0 = 10 unit 0.1)
@@ -137,10 +158,13 @@ function pungutTagihanBulanan(s, inflasiBiayaHidup) {
   const totalTagihan = Math.round(tagihanListrik + tagihanPBB + biayaKeluargaBulanan);
   s.kasSelga -= totalTagihan;
 
-  // inflasi biaya keluarga tiap awal tahun
+  // inflasi & penyusutan tiap awal tahun
   if (s.giliran > 1 && (s.giliran - 1) % 12 === 0) {
     s.biayaKeluargaLokal = Math.round(s.biayaKeluargaLokal * (1 + inflasiBiayaHidup));
     s.biayaKeluargaImporGC = Math.round(s.biayaKeluargaImporGC * (1 + inflasiBiayaHidup));
+    
+    // Penyusutan kapasitas kebun (Capital Depreciation)
+    s.faktorTanam = Math.max(1.0, s.faktorTanam - PENYUSUTAN_KEBUN_TAHUNAN);
   }
 }
 ```
@@ -150,8 +174,23 @@ Dipungut tiap Fase Resolusi, **sebelum** cek kalah (`08-skor-dan-rapor.md`).
 
 ```ts
 function pinjamMaks(s, cfg) { return s.kasSelga * cfg.capPinjaman; }
-function pungutBunga(s, cfg) { s.kasSelga -= Math.round(s.pinjaman * cfg.bungaKoperasi); }
+function pungutBunga(s, cfg) { 
+  // Floating Rate: Bunga naik jika kurs melemah (krisis makroekonomi)
+  const bungaAktual = cfg.bungaKoperasi * Math.max(1, s.kurs / KURS_AWAL);
+  s.kasSelga -= Math.round(s.pinjaman * bungaAktual); 
+}
 ```
+
+> **§makro — Crisis-stacking itu DISENGAJA (currency mismatch / "original sin").**
+> Saat kurs naik (Selga melemah), tiga beban naik serempak: harga impor (§harga),
+> komponen impor biaya keluarga (§tagihan), dan bunga floating (di atas). Ini
+> **bukan bug** — ini pelajaran ekonomi EM yang benar: berutang/bergantung pada
+> valas membuat depresiasi memukul berlapis. Tugas desainnya bukan menghapusnya,
+> tapi memastikan ada **counterplay yang ter-telegraf**: pegang GC saat tenang
+> (lindung nilai), hindari pinjaman menjelang periode rawan krisis, dan jaga kas
+> penyangga. Penasihat (`06 §6b`) & grafik kurs (`12`) harus membantu pemain
+> *melihat* pola ini agar jadi pelajaran, bukan kematian acak. Konsekuensi balance
+> (Hard/Medium bangkrut naik) sudah tercatat di `10 §kalibrasi`.
 
 ## §kesejahteraan — Drain & Pemulihan (TANPA ini, kondisi kalah mustahil)
 
