@@ -22,6 +22,7 @@ export default function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoadingNews, setIsLoadingNews] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Load save on mount
   useEffect(() => {
@@ -75,22 +76,51 @@ export default function App() {
   if (state.fase === 'belum_mulai') {
     const hasSave = !!muatGame();
     return (
-      <StartScreen
-        onMulai={handleMulai}
-        hasSave={hasSave}
-        onLoad={() => { const s = muatGame(); if (s) dispatch({ type: 'MUAT', payload: s }); }}
-        onDeleteSave={handleDeleteSave}
-      />
+      <div className="relative min-h-screen w-full max-w-[600px] mx-auto" style={{ background: '#1B4332' }}>
+        <StartScreen
+          onMulai={handleMulai}
+          hasSave={hasSave}
+          onLoad={() => { const s = muatGame(); if (s) dispatch({ type: 'MUAT', payload: s }); }}
+          onDeleteSave={handleDeleteSave}
+        />
+      </div>
     );
   }
 
   // Game selesai → EndScreen
   if (state.fase === 'selesai') {
-    return <EndScreen state={state} onMulaiUlang={() => { hapusSave(); dispatch({ type: 'MUAT', payload: stateAwal() }); }} />;
+    return (
+      <div className="relative min-h-screen w-full max-w-[600px] mx-auto" style={{ background: '#1B4332' }}>
+        <EndScreen state={state} onMulaiUlang={() => { hapusSave(); dispatch({ type: 'MUAT', payload: stateAwal() }); }} />
+      </div>
+    );
   }
 
+  // Wrapper class: max 600px centered on desktop, full width when expanded
+  const wrapperClass = isExpanded
+    ? 'relative min-h-screen w-full'
+    : 'relative min-h-screen w-full max-w-[600px] mx-auto';
+
   return (
-    <div className="relative min-h-screen overflow-hidden" style={{ background: '#1B4332' }}>
+    <div className={wrapperClass} style={{ background: '#1B4332' }}>
+      {/* Viewport Toggle Button (only visible on desktop) */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="hidden md:flex absolute top-[11vh] left-4 z-50 items-center justify-center w-5 h-5 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition-colors"
+        title={isExpanded ? "Desktop Mode (600px)" : "Full Viewport"}
+      >
+        {isExpanded ? (
+          /* Compress icon */
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 14h6v6m10-6h-6m0 0V8M4 14h6m0 0v-6m0 6H4m16 0h-6m0 0V8" />
+          </svg>
+        ) : (
+          /* Expand icon */
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M16 4h4m0 0v4M4 16v4m0 0h4m12-4v4m0 0h-4" />
+          </svg>
+        )}
+      </button>
       {/* Background — Scene dengan karakter */}
       <GameCanvas
         kategoriBerita={state.beritaTerkini?.kategori}

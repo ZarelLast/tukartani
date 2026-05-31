@@ -72,7 +72,7 @@ export default function DecisionPanel({ state, onDispatch, onLanjutBulan, onBuka
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-20 p-2 md:p-4 pb-4 md:pb-6" style={{ background: 'linear-gradient(to top, rgba(92, 74, 46, 0.95) 0%, rgba(92, 74, 46, 0.7) 60%, transparent 100%)' }}>
+    <div className="absolute bottom-0 left-0 right-0 z-20 p-2 md:p-4 pb-4 md:pb-6" style={{ background: 'linear-gradient(to top, rgba(92, 74, 46, 0.95) 0%, rgba(92, 74, 46, 0.7) 60%, transparent 100%)' }}>
       {/* Tombol Aksi Grid + FAB */}
       <div className="flex items-center justify-center gap-2 md:gap-3">
         {/* Gudang */}

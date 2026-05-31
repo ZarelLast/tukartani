@@ -40,7 +40,7 @@ export default function Dashboard({ state }) {
           className="rounded-full px-4 py-1 flex items-center gap-2 shadow-lg"
           style={{ background: '#5C4A2E', border: '2px solid #8B6F47' }}
         >
-          <span className="text-lg">💰</span>
+          <span className="text-lg">💵</span>
           <div>
             <div className="text-xs" style={{ color: '#D4A76A', fontFamily: "'Quicksand', sans-serif" }}>Selga</div>
             <div className="text-sm font-bold" style={{ color: '#FFD700', fontFamily: "'Fredoka One', cursive" }}>
@@ -54,7 +54,7 @@ export default function Dashboard({ state }) {
           className="rounded-full px-4 py-1 flex items-center gap-2 shadow-lg"
           style={{ background: '#5C4A2E', border: '2px solid #8B6F47' }}
         >
-          <span className="text-lg">🪙</span>
+          <span className="text-lg">💰</span>
           <div>
             <div className="text-xs" style={{ color: '#D4A76A', fontFamily: "'Quicksand', sans-serif" }}>GC</div>
             <div className="text-sm font-bold" style={{ color: '#FFD700', fontFamily: "'Fredoka One', cursive" }}>
