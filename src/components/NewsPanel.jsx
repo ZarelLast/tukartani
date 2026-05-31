@@ -84,7 +84,7 @@ export default function NewsPanel({ berita, kurs, onLanjut }) {
                   </span>
                 </div>
               )}
-              {berita.efek.stokKopiDelta && berita.efek.stokKopiDelta < 0 && (
+              {berita.efek.stokKopiDelta !== undefined && berita.efek.stokKopiDelta < 0 && (
                 <div className="flex items-center gap-2">
                   <span>🔴 Stok kopi berkurang</span>
                   <span className="text-xs opacity-70">({berita.efek.stokKopiDelta} kg)</span>

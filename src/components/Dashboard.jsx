@@ -44,7 +44,7 @@ export default function Dashboard({ state }) {
           <div>
             <div className="text-xs" style={{ color: '#D4A76A', fontFamily: "'Quicksand', sans-serif" }}>Selga</div>
             <div className="text-sm font-bold" style={{ color: '#FFD700', fontFamily: "'Fredoka One', cursive" }}>
-              {fmt(state.kasSelga)}
+              {fmt(Math.round(state.kasSelga))}
             </div>
           </div>
         </div>
